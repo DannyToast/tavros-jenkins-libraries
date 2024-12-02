@@ -53,7 +53,6 @@ def call(Map args = [:]) {
                     returnStdout: true,
                     script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout'
             )}"""
-            REG_CREDS = credentials("${TAVROS_REG_CREDS}")
             AZURE_CLIENT_ID = "${AZURE_CLIENT_ID}"
             AZURE_CLIENT_SECRET = "${AZURE_CLIENT_SECRET}"
             AZURE_TENANT_ID = "${AZURE_TENANT_ID}"
