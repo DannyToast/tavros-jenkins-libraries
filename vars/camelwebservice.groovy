@@ -25,21 +25,18 @@ def call(Map args = [:]) {
                         args:
                         - tail -f /dev/null
                       - name: kaniko
-                        image: gcr.io/kaniko-project/executor:v1.13.0-debug
+                        image: gcr.io/kaniko-project/executor:latest
                         command:
                         - sleep
                         args:
                         - 9999999
                         volumeMounts:
-                        - name: kaniko-secret
-                          mountPath: /kaniko/.docker
+                            - name: docker-config
+                              mountPath: /kaniko/.docker/
                       volumes:
-                      - name: kaniko-secret
-                        secret:
-                            secretName: tavros-artifacts-registry
-                            items:
-                            - key: .dockerconfigjson
-                              path: config.json
+                        - name: docker-config
+                          configMap:
+                            name: docker-config
                 '''
                 defaultContainer 'maven'
             }
