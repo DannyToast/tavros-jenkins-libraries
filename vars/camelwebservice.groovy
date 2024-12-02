@@ -30,16 +30,16 @@ def call(Map args = [:]) {
                         - sleep
                         args:
                         - 9999999
-                        envFrom:
-                            - secretRef:
-                                name: tavros-artifacts-registry
                         volumeMounts:
-                            - name: docker-config
+                            - name: kaniko-secret
                               mountPath: /kaniko/.docker/
                       volumes:
-                        - name: docker-config
-                          configMap:
-                            name: docker-config
+                      - name: kaniko-secret
+                        secret: 
+                          secretName: acr-secret
+                          items:
+                            - key: .dockerconfigjson
+                              path: config.json
                 '''
                 defaultContainer 'maven'
             }
