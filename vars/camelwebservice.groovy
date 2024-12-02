@@ -30,6 +30,9 @@ def call(Map args = [:]) {
                         - sleep
                         args:
                         - 9999999
+                        envFrom:
+                            - secretRef:
+                                name: tavros-artifacts-registry
                         volumeMounts:
                             - name: docker-config
                               mountPath: /kaniko/.docker/
