@@ -19,18 +19,44 @@ def call(Map args = [:]) {
                         - sleep
                         args:
                         - infinity
+                      - name: kaniko
+                        image: gcr.io/kaniko-project/executor:v1.13.0-debug
+                        command:
+                        - sleep
+                        args:
+                        - 9999999
+                        volumeMounts:
+                            - name: kaniko-secret
+                              mountPath: /kaniko/.docker/
+                      volumes:
+                      - name: kaniko-secret
+                        secret: 
+                          secretName: acr-secret
+                          items:
+                            - key: .dockerconfigjson
+                              path: config.json
                 '''
                 defaultContainer 'maven'
             }
         }
+        environment {
+            VERSION = """${sh(
+                    returnStdout: true,
+                    script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout'
+            )}"""
+            NAME = """${sh(
+                    returnStdout: true,
+                    script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout'
+            )}"""
+        }
         stages {
-            stage('Test/Build/Push') {
-                environment {
-                    REG_CREDS = credentials("${TAVROS_REG_CREDS}")
-                }
+            stage('Push with Kaniko') {
                 steps {
-                    script {
-                        utils.shResource "maven-deploy.sh"
+                    container('kaniko') {
+                        sh '''
+                        echo "Running kaniko cmd"
+                        /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --destination="${TAVROS_REG_HOST}/${NAME}:${VERSION}"
+                        '''
                     }
                 }
             }
