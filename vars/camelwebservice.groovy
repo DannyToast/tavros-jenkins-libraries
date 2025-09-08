@@ -18,7 +18,7 @@ def call(Map args = [:]) {
                         args:
                         - infinity
                       - name: maven
-                        image: maven:3.8.1-jdk-11-slim
+                        image: maven:3.8.3-openjdk-17
                         securityContext:
                           runAsUser: 1000
                         command: ["/bin/sh", "-c"]
