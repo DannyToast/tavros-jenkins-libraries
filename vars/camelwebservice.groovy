@@ -35,7 +35,7 @@ def call(Map args = [:]) {
                               mountPath: /kaniko/.docker/
                       volumes:
                       - name: kaniko-secret
-                        secret: 
+                        secret:
                           secretName: acr-secret
                           items:
                             - key: .dockerconfigjson
@@ -72,57 +72,9 @@ def call(Map args = [:]) {
                     }
                 }
             }
-            stage('Update Helm Release') {
-                environment {
-                    GIT_CREDS = credentials("${TAVROS_GIT_CREDS}")
-                    GIT_HOST = "${TAVROS_GIT_HOST}"
-                    NAMESPACE = "dev"
-                    RELEASE_PATH = "${NAMESPACE}/apis/${NAME}-release.yaml"
-                }
-                steps {
-                    container('git') {
-                        dir("tavros-platform") {
-                            checkout([
-                                    $class           : 'GitSCM',
-                                    branches         : [[name: '*/main']],
-                                    extensions       : [[$class: 'LocalBranch', localBranch: "**"]],
-                                    userRemoteConfigs: [[
-                                                                credentialsId: "${TAVROS_GIT_CREDS}",
-                                                                url          : "https://${TAVROS_GIT_HOST}"
-                                                        ]]
-                            ])
 
-                            script {
-                                if (env.BUILD_USER_EMAIL == null) {
-                                    env.BUILD_USER_EMAIL = ""
-                                    env.BUILD_USER = "Jenkins"
-                                }
-
-                                try {
-                                    utils.shResource "check-if-helm-release-exists.sh"
-                                } catch (err) {
-                                    echo "Helm release doesn't exist. Creating file: ${RELEASE_PATH}"
-                                    utils.writeResource "release.yaml", "${RELEASE_PATH}"
-                                }
-
-                                utils.shResource "helm-release-update.sh"
-                                utils.shResource "helm-release-git-setup.sh"
-                                utils.shResource "helm-release-commit.sh"
-                                timeout(2) {
-                                    waitUntil {
-                                        try {
-                                            utils.shResource "helm-release-push.sh"
-                                            return true
-                                        } catch (error) {
-                                            return false
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // NOTE: "Update Helm Release" stage intentionally removed
+            // (previously responsible for updating release YAML and pushing to Git)
         }
     }
 }
