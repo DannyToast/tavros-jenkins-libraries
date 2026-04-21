@@ -88,7 +88,7 @@ def call(Map args = [:]) {
                                     extensions       : [[$class: 'LocalBranch', localBranch: "**"]],
                                     userRemoteConfigs: [[
                                                                 credentialsId: "${TAVROS_GIT_CREDS}",
-                                                                url          : "https://${TAVROS_GIT_HOST}/tavros/platform.git"
+                                                                url          : "https://${TAVROS_GIT_HOST}"
                                                         ]]
                             ])
 
