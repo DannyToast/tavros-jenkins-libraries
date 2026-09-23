@@ -55,13 +55,25 @@ def call(Map args = [:]) {
 
         environment {
             VERSION = """${sh(
-                    returnStdout: true,
-                    script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -n 1'
+                returnStdout: true,
+                script: """
+                    mvn help:evaluate \
+                      -Dexpression=project.version \
+                      -q \
+                      -DforceStdout \
+                    | sed 's/^\\[INFO\\] \\[stdout\\] //'
+                """
             ).trim()}"""
 
             NAME = """${sh(
-                    returnStdout: true,
-                    script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout | tail -n 1'
+                returnStdout: true,
+                script: """
+                    mvn help:evaluate \
+                      -Dexpression=project.artifactId \
+                      -q \
+                      -DforceStdout \
+                    | sed 's/^\\[INFO\\] \\[stdout\\] //'
+                """
             ).trim()}"""
         }
 
