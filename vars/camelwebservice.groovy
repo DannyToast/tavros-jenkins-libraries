@@ -52,16 +52,19 @@ def call(Map args = [:]) {
                 defaultContainer 'maven'
             }
         }
+
         environment {
             VERSION = """${sh(
                     returnStdout: true,
-                    script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout'
-            )}"""
+                    script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -n 1'
+            ).trim()}"""
+
             NAME = """${sh(
                     returnStdout: true,
-                    script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout'
-            )}"""
+                    script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout | tail -n 1'
+            ).trim()}"""
         }
+
         stages {
             stage('Test/Build') {
                 steps {
@@ -71,12 +74,25 @@ def call(Map args = [:]) {
                 }
             }
 
+            stage('Debug Image Name') {
+                steps {
+                    echo "NAME=[${NAME}]"
+                    echo "VERSION=[${VERSION}]"
+                    echo "IMAGE=[${TAVROS_REG_HOST}/${NAME}:${VERSION}]"
+                }
+            }
+
             stage('Push with Kaniko') {
                 steps {
                     container('kaniko') {
                         sh '''
                         echo "Running kaniko cmd"
-                        /kaniko/executor -f `pwd`/Dockerfile -c `pwd` --destination="${TAVROS_REG_HOST}/${NAME}:${VERSION}"
+                        echo "Destination=${TAVROS_REG_HOST}/${NAME}:${VERSION}"
+
+                        /kaniko/executor \
+                          -f `pwd`/Dockerfile \
+                          -c `pwd` \
+                          --destination="${TAVROS_REG_HOST}/${NAME}:${VERSION}"
                         '''
                     }
                 }
