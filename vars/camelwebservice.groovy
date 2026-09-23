@@ -11,19 +11,26 @@ def call(Map args = [:]) {
                     kind: Pod
                     spec:
                       containers:
+                      - name: jnlp
+                        image: jenkins/inbound-agent:3391.va_37fa_a_305d6d-2-jdk21
+
                       - name: git
                         image: atlassian/default-image:4.20230726
                         command:
                         - sleep
                         args:
                         - infinity
+
                       - name: maven
-                        image: maven:3.8.3-openjdk-17
+                        image: maven:4.0.0-rc-5-eclipse-temurin-21
                         securityContext:
                           runAsUser: 1000
-                        command: ["/bin/sh", "-c"]
+                        command:
+                        - /bin/sh
+                        - -c
                         args:
                         - tail -f /dev/null
+
                       - name: kaniko
                         image: gcr.io/kaniko-project/executor:v1.13.0-debug
                         command:
@@ -31,15 +38,16 @@ def call(Map args = [:]) {
                         args:
                         - 9999999
                         volumeMounts:
-                            - name: kaniko-secret
-                              mountPath: /kaniko/.docker/
+                        - name: kaniko-secret
+                          mountPath: /kaniko/.docker/
+
                       volumes:
                       - name: kaniko-secret
                         secret:
                           secretName: acr-secret
                           items:
-                            - key: .dockerconfigjson
-                              path: config.json
+                          - key: .dockerconfigjson
+                            path: config.json
                 '''
                 defaultContainer 'maven'
             }
@@ -62,6 +70,7 @@ def call(Map args = [:]) {
                     }
                 }
             }
+
             stage('Push with Kaniko') {
                 steps {
                     container('kaniko') {
@@ -72,9 +81,6 @@ def call(Map args = [:]) {
                     }
                 }
             }
-
-            // NOTE: "Update Helm Release" stage intentionally removed
-            // (previously responsible for updating release YAML and pushing to Git)
         }
     }
 }
